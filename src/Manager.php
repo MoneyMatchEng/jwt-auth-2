@@ -206,6 +206,17 @@ class Manager
     }
 
     /**
+     * Set the JWTProvider instance.
+     *
+     * @return JWTContract
+     */
+    public function setJWTProvider($provider)
+    {
+        $this->provider = $provider;
+        return $this;
+    }
+
+    /**
      * Get the Blacklist instance.
      *
      * @return Blacklist
