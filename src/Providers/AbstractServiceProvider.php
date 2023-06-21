@@ -36,6 +36,7 @@ use PHPOpenSourceSaver\JWTAuth\JWTAuth;
 use PHPOpenSourceSaver\JWTAuth\JWTGuard;
 use PHPOpenSourceSaver\JWTAuth\Manager;
 use PHPOpenSourceSaver\JWTAuth\Providers\JWT\Lcobucci;
+use PHPOpenSourceSaver\JWTAuth\Providers\JWT\SSOLcobucci;
 use PHPOpenSourceSaver\JWTAuth\Providers\JWT\Namshi;
 use PHPOpenSourceSaver\JWTAuth\Validators\PayloadValidator;
 
@@ -121,6 +122,7 @@ abstract class AbstractServiceProvider extends ServiceProvider
         $this->app->alias('tymon.jwt.provider.jwt', JWTContract::class);
         $this->app->alias('tymon.jwt.provider.jwt.namshi', Namshi::class);
         $this->app->alias('tymon.jwt.provider.jwt.lcobucci', Lcobucci::class);
+        $this->app->alias('tymon.jwt.provider.jwt.sso.lcobucci', SSOLcobucci::class);
         $this->app->alias('tymon.jwt.provider.auth', Auth::class);
         $this->app->alias('tymon.jwt.provider.storage', Storage::class);
         $this->app->alias('tymon.jwt.manager', Manager::class);
@@ -138,6 +140,7 @@ abstract class AbstractServiceProvider extends ServiceProvider
     {
         $this->registerNamshiProvider();
         $this->registerLcobucciProvider();
+        $this->registerSSOLcobucciProvider();
 
         $this->app->singleton('tymon.jwt.provider.jwt', fn ($app) => $this->getConfigInstance($app, 'providers.jwt'));
     }
@@ -166,6 +169,20 @@ abstract class AbstractServiceProvider extends ServiceProvider
     {
         $this->app->singleton('tymon.jwt.provider.jwt.lcobucci', fn ($app) => new Lcobucci(
             $app->make('config')->get('jwt.secret'),
+            $app->make('config')->get('jwt.algo'),
+            $app->make('config')->get('jwt.keys')
+        ));
+    }
+
+    /**
+     * Register the bindings for the Lcobucci JWT provider.
+     *
+     * @return void
+     */
+    protected function registerSSOLcobucciProvider()
+    {
+        $this->app->singleton('tymon.jwt.provider.jwt.sso.lcobucci', fn ($app) => new SSOLcobucci(
+            $app->make('config')->get('jwt.sso_secret'),
             $app->make('config')->get('jwt.algo'),
             $app->make('config')->get('jwt.keys')
         ));

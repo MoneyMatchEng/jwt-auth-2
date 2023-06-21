@@ -404,4 +404,10 @@ class JWT
 
         throw new BadMethodCallException("Method [$method] does not exist.");
     }
+
+    public function setJWTProvider($jwtProvider)
+    {
+        $this->manager->setJWTProvider($jwtProvider);
+        return $this;
+    }
 }
