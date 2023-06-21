@@ -93,4 +93,182 @@ class SSOLcobucci extends Provider implements JWT
             );
         }
     }
+
+    /**
+     * Gets the {@see $config} attribute.
+     *
+     * @return Configuration
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
+     * Signers that this provider supports.
+     *
+     * @var array
+     */
+    protected $signers = [
+        'HS256' => HS256::class,
+        'HS384' => HS384::class,
+        'HS512' => HS512::class,
+        'RS256' => RS256::class,
+        'RS384' => RS384::class,
+        'RS512' => RS512::class,
+        'ES256' => ES256::class,
+        'ES384' => ES384::class,
+        'ES512' => ES512::class,
+    ];
+
+    /**
+     * Create a JSON Web Token.
+     *
+     * @return string
+     *
+     * @throws JWTException
+     */
+    public function encode(array $payload)
+    {
+        $this->builder = null;
+        $this->builder = $this->config->builder();
+
+        try {
+            foreach ($payload as $key => $value) {
+                $this->addClaim($key, $value);
+            }
+
+            return $this->builder->getToken($this->config->signer(), $this->config->signingKey())->toString();
+        } catch (Exception $e) {
+            throw new JWTException('Could not create token: '.$e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * Decode a JSON Web Token.
+     *
+     * @param string $token
+     *
+     * @return array
+     *
+     * @throws JWTException
+     */
+    public function decode($token)
+    {
+        try {
+            $jwt = $this->config->parser()->parse($token);
+        } catch (Exception $e) {
+            throw new TokenInvalidException('Could not decode token: '.$e->getMessage(), $e->getCode(), $e);
+        }
+
+        if (!$this->config->validator()->validate($jwt, ...$this->config->validationConstraints())) {
+            throw new TokenInvalidException('Token Signature could not be verified.');
+        }
+
+        return (new Collection($jwt->claims()->all()))->map(function ($claim) {
+            if (is_a($claim, DateTimeImmutable::class)) {
+                return $claim->getTimestamp();
+            }
+            if (is_object($claim) && method_exists($claim, 'getValue')) {
+                return $claim->getValue();
+            }
+
+            return $claim;
+        })->toArray();
+    }
+
+    /**
+     * Adds a claim to the {@see $config}.
+     *
+     * @param string $key
+     * @param mixed  $value
+     */
+    protected function addClaim($key, $value)
+    {
+        if (!isset($this->builder)) {
+            $this->builder = $this->config->builder();
+        }
+
+        switch ($key) {
+            case RegisteredClaims::ID:
+                $this->builder->identifiedBy($value);
+                break;
+            case RegisteredClaims::EXPIRATION_TIME:
+                $this->builder->expiresAt(DateTimeImmutable::createFromFormat('U', $value));
+                break;
+            case RegisteredClaims::NOT_BEFORE:
+                $this->builder->canOnlyBeUsedAfter(DateTimeImmutable::createFromFormat('U', $value));
+                break;
+            case RegisteredClaims::ISSUED_AT:
+                $this->builder->issuedAt(DateTimeImmutable::createFromFormat('U', $value));
+                break;
+            case RegisteredClaims::ISSUER:
+                $this->builder->issuedBy($value);
+                break;
+            case RegisteredClaims::AUDIENCE:
+                $this->builder->permittedFor($value);
+                break;
+            case RegisteredClaims::SUBJECT:
+                $this->builder->relatedTo($value);
+                break;
+            default:
+                $this->builder->withClaim($key, $value);
+        }
+    }
+
+    /**
+     * Get the signer instance.
+     *
+     * @return Signer
+     *
+     * @throws JWTException
+     */
+    protected function getSigner()
+    {
+        if (!array_key_exists($this->algo, $this->signers)) {
+            throw new JWTException('The given algorithm could not be found');
+        }
+
+        $signer = $this->signers[$this->algo];
+
+        if (is_subclass_of($signer, Ecdsa::class)) {
+            return $signer::create();
+        }
+
+        return new $signer();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function isAsymmetric()
+    {
+        $reflect = new ReflectionClass($this->signer);
+
+        return $reflect->isSubclassOf(Rsa::class) || $reflect->isSubclassOf(Ecdsa::class);
+    }
+
+    /**
+     * Get the key used to sign the tokens.
+     *
+     * @return Key|string
+     */
+    protected function getSigningKey()
+    {
+        return $this->isAsymmetric() ?
+            InMemory::plainText($this->getPrivateKey(), $this->getPassphrase() ?? '') :
+            InMemory::plainText($this->getSecret());
+    }
+
+    /**
+     * Get the key used to verify the tokens.
+     *
+     * @return Key|string
+     */
+    protected function getVerificationKey()
+    {
+        return $this->isAsymmetric() ?
+            InMemory::plainText($this->getPublicKey()) :
+            InMemory::plainText($this->getSecret());
+    }
 }
