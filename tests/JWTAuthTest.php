@@ -13,7 +13,6 @@
 namespace PHPOpenSourceSaver\JWTAuth\Test;
 
 use Illuminate\Http\Request;
-use Mockery;
 use Mockery\LegacyMockInterface;
 use PHPOpenSourceSaver\JWTAuth\Contracts\Providers\Auth;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
@@ -25,7 +24,6 @@ use PHPOpenSourceSaver\JWTAuth\Manager;
 use PHPOpenSourceSaver\JWTAuth\Payload;
 use PHPOpenSourceSaver\JWTAuth\Test\Stubs\UserStub;
 use PHPOpenSourceSaver\JWTAuth\Token;
-use stdClass;
 
 class JWTAuthTest extends AbstractTestCase
 {
@@ -39,17 +37,16 @@ class JWTAuthTest extends AbstractTestCase
 
     public function setUp(): void
     {
-        $this->manager = Mockery::mock(Manager::class);
-        $this->auth = Mockery::mock(Auth::class);
-        $this->parser = Mockery::mock(Parser::class);
+        $this->manager = \Mockery::mock(Manager::class);
+        $this->auth = \Mockery::mock(Auth::class);
+        $this->parser = \Mockery::mock(Parser::class);
         $this->jwtAuth = new JWTAuth($this->manager, $this->auth, $this->parser);
     }
 
-    /** @test */
-    public function itShouldReturnATokenWhenPassingAUser()
+    public function testItShouldReturnATokenWhenPassingAUser()
     {
-        $payloadFactory = Mockery::mock(Factory::class);
-        $payloadFactory->shouldReceive('make')->andReturn(Mockery::mock(Payload::class));
+        $payloadFactory = \Mockery::mock(Factory::class);
+        $payloadFactory->shouldReceive('make')->andReturn(\Mockery::mock(Payload::class));
 
         $this->manager
             ->shouldReceive('getPayloadFactory->customClaims')
@@ -64,11 +61,10 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertSame($token, 'foo.bar.baz');
     }
 
-    /** @test */
-    public function itShouldPassProviderCheckIfHashMatches()
+    public function testItShouldPassProviderCheckIfHashMatches()
     {
-        $payloadFactory = Mockery::mock(Factory::class);
-        $payloadFactory->shouldReceive('make')->andReturn(Mockery::mock(Payload::class));
+        $payloadFactory = \Mockery::mock(Factory::class);
+        $payloadFactory->shouldReceive('make')->andReturn(\Mockery::mock(Payload::class));
         $payloadFactory->shouldReceive('get')
             ->with('prv')
             ->andReturn(sha1('PHPOpenSourceSaver\JWTAuth\Test\Stubs\UserStub'));
@@ -78,11 +74,10 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertTrue($this->jwtAuth->setToken('foo.bar.baz')->checkSubjectModel('PHPOpenSourceSaver\JWTAuth\Test\Stubs\UserStub'));
     }
 
-    /** @test */
-    public function itShouldPassProviderCheckIfHashMatchesWhenProviderIsNull()
+    public function testItShouldPassProviderCheckIfHashMatchesWhenProviderIsNull()
     {
-        $payloadFactory = Mockery::mock(Factory::class);
-        $payloadFactory->shouldReceive('make')->andReturn(Mockery::mock(Payload::class));
+        $payloadFactory = \Mockery::mock(Factory::class);
+        $payloadFactory->shouldReceive('make')->andReturn(\Mockery::mock(Payload::class));
         $payloadFactory->shouldReceive('get')
             ->with('prv')
             ->andReturnNull();
@@ -92,11 +87,10 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertTrue($this->jwtAuth->setToken('foo.bar.baz')->checkSubjectModel('PHPOpenSourceSaver\JWTAuth\Test\Stubs\UserStub'));
     }
 
-    /** @test */
-    public function itShouldNotPassProviderCheckIfHashNotMatch()
+    public function testItShouldNotPassProviderCheckIfHashNotMatch()
     {
-        $payloadFactory = Mockery::mock(Factory::class);
-        $payloadFactory->shouldReceive('make')->andReturn(Mockery::mock(Payload::class));
+        $payloadFactory = \Mockery::mock(Factory::class);
+        $payloadFactory->shouldReceive('make')->andReturn(\Mockery::mock(Payload::class));
         $payloadFactory->shouldReceive('get')
             ->with('prv')
             ->andReturn(sha1('PHPOpenSourceSaver\JWTAuth\Test\Stubs\UserStub1'));
@@ -106,11 +100,10 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertFalse($this->jwtAuth->setToken('foo.bar.baz')->checkSubjectModel('PHPOpenSourceSaver\JWTAuth\Test\Stubs\UserStub'));
     }
 
-    /** @test */
-    public function itShouldReturnATokenWhenPassingValidCredentialsToAttemptMethod()
+    public function testItShouldReturnATokenWhenPassingValidCredentialsToAttemptMethod()
     {
-        $payloadFactory = Mockery::mock(Factory::class);
-        $payloadFactory->shouldReceive('make')->andReturn(Mockery::mock(Payload::class));
+        $payloadFactory = \Mockery::mock(Factory::class);
+        $payloadFactory->shouldReceive('make')->andReturn(\Mockery::mock(Payload::class));
 
         $this->manager
             ->shouldReceive('getPayloadFactory->customClaims')
@@ -128,8 +121,7 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertSame($token, 'foo.bar.baz');
     }
 
-    /** @test */
-    public function itShouldReturnFalseWhenPassingInvalidCredentialsToAttemptMethod()
+    public function testItShouldReturnFalseWhenPassingInvalidCredentialsToAttemptMethod()
     {
         $this->manager->shouldReceive('encode->get')->never();
         $this->auth->shouldReceive('byCredentials')->once()->andReturn(false);
@@ -140,8 +132,7 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertFalse($token);
     }
 
-    /** @test */
-    public function itShouldThrowAnExceptionWhenNotProvidingAToken()
+    public function testItShouldThrowAnExceptionWhenNotProvidingAToken()
     {
         $this->expectException(JWTException::class);
         $this->expectExceptionMessage('A token is required');
@@ -149,10 +140,9 @@ class JWTAuthTest extends AbstractTestCase
         $this->jwtAuth->toUser();
     }
 
-    /** @test */
-    public function itShouldReturnTheOwningUserFromATokenContainingAnExistingUser()
+    public function testItShouldReturnTheOwningUserFromATokenContainingAnExistingUser()
     {
-        $payload = Mockery::mock(Payload::class);
+        $payload = \Mockery::mock(Payload::class);
         $payload->shouldReceive('get')->once()->with('sub')->andReturn(1);
 
         $this->manager->shouldReceive('decode')->once()->andReturn($payload);
@@ -165,10 +155,9 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertSame($user->id, 1);
     }
 
-    /** @test */
-    public function itShouldReturnFalseWhenPassingATokenNotContainingAnExistingUser()
+    public function testItShouldReturnFalseWhenPassingATokenNotContainingAnExistingUser()
     {
-        $payload = Mockery::mock(Payload::class);
+        $payload = \Mockery::mock(Payload::class);
         $payload->shouldReceive('get')->once()->with('sub')->andReturn(1);
 
         $this->manager->shouldReceive('decode')->once()->andReturn($payload);
@@ -181,10 +170,9 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertFalse($user);
     }
 
-    /** @test */
-    public function itShouldRefreshAToken()
+    public function testItShouldRefreshAToken()
     {
-        $newToken = Mockery::mock(Token::class);
+        $newToken = \Mockery::mock(Token::class);
         $newToken->shouldReceive('get')->once()->andReturn('baz.bar.foo');
 
         $this->manager->shouldReceive('customClaims->refresh')->once()->andReturn($newToken);
@@ -194,8 +182,7 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertSame($result, 'baz.bar.foo');
     }
 
-    /** @test */
-    public function itShouldInvalidateAToken()
+    public function testItShouldInvalidateAToken()
     {
         $token = new Token('foo.bar.baz');
 
@@ -204,8 +191,7 @@ class JWTAuthTest extends AbstractTestCase
         $this->jwtAuth->setToken($token)->invalidate();
     }
 
-    /** @test */
-    public function itShouldForceInvalidateATokenForever()
+    public function testItShouldForceInvalidateATokenForever()
     {
         $token = new Token('foo.bar.baz');
 
@@ -214,8 +200,7 @@ class JWTAuthTest extends AbstractTestCase
         $this->jwtAuth->setToken($token)->invalidate(true);
     }
 
-    /** @test */
-    public function itShouldRetrieveTheTokenFromTheRequest()
+    public function testItShouldRetrieveTheTokenFromTheRequest()
     {
         $this->parser->shouldReceive('parseToken')->andReturn('foo.bar.baz');
 
@@ -223,15 +208,13 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertEquals($this->jwtAuth->getToken(), 'foo.bar.baz');
     }
 
-    /** @test */
-    public function itShouldGetTheAuthenticatedUser()
+    public function testItShouldGetTheAuthenticatedUser()
     {
         $manager = $this->jwtAuth->manager();
         $this->assertInstanceOf(Manager::class, $manager);
     }
 
-    /** @test */
-    public function itShouldReturnFalseIfTheTokenIsInvalid()
+    public function testItShouldReturnFalseIfTheTokenIsInvalid()
     {
         $this->parser->shouldReceive('parseToken')->andReturn('foo.bar.baz');
         $this->manager->shouldReceive('decode')->once()->andThrow(new TokenInvalidException());
@@ -239,10 +222,9 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertFalse($this->jwtAuth->parseToken()->check());
     }
 
-    /** @test */
-    public function itShouldReturnTrueIfTheTokenIsValid()
+    public function testItShouldReturnTrueIfTheTokenIsValid()
     {
-        $payload = Mockery::mock(Payload::class);
+        $payload = \Mockery::mock(Payload::class);
 
         $this->parser->shouldReceive('parseToken')->andReturn('foo.bar.baz');
         $this->manager->shouldReceive('decode')->once()->andReturn($payload);
@@ -250,8 +232,7 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertTrue($this->jwtAuth->parseToken()->check());
     }
 
-    /** @test */
-    public function itShouldThrowAnExceptionWhenTokenNotPresentInRequest()
+    public function testItShouldThrowAnExceptionWhenTokenNotPresentInRequest()
     {
         $this->expectException(JWTException::class);
         $this->expectExceptionMessage('The token could not be parsed from the request');
@@ -261,26 +242,23 @@ class JWTAuthTest extends AbstractTestCase
         $this->jwtAuth->parseToken();
     }
 
-    /** @test */
-    public function itShouldReturnFalseWhenNoTokenIsSet()
+    public function testItShouldReturnFalseWhenNoTokenIsSet()
     {
         $this->parser->shouldReceive('parseToken')->andReturn(false);
 
         $this->assertNull($this->jwtAuth->getToken());
     }
 
-    /** @test */
-    public function itShouldMagicallyCallTheManager()
+    public function testItShouldMagicallyCallTheManager()
     {
-        $this->manager->shouldReceive('getBlacklist')->andReturn(new stdClass());
+        $this->manager->shouldReceive('getBlacklist')->andReturn(new \stdClass());
 
         $blacklist = $this->jwtAuth->manager()->getBlacklist();
 
-        $this->assertInstanceOf(stdClass::class, $blacklist);
+        $this->assertInstanceOf(\stdClass::class, $blacklist);
     }
 
-    /** @test */
-    public function itShouldSetTheRequest()
+    public function testItShouldSetTheRequest()
     {
         $request = Request::create('/foo', 'GET', ['token' => 'some.random.token']);
 
@@ -292,8 +270,7 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertEquals('some.random.token', $token);
     }
 
-    /** @test */
-    public function itShouldUnsetTheToken()
+    public function testItShouldUnsetTheToken()
     {
         $this->parser->shouldReceive('parseToken')->andThrow(new JWTException());
         $token = new Token('foo.bar.baz');
@@ -304,24 +281,21 @@ class JWTAuthTest extends AbstractTestCase
         $this->assertNull($this->jwtAuth->getToken());
     }
 
-    /** @test */
-    public function itShouldGetTheManagerInstance()
+    public function testItShouldGetTheManagerInstance()
     {
         $manager = $this->jwtAuth->manager();
         $this->assertInstanceOf(Manager::class, $manager);
     }
 
-    /** @test */
-    public function itShouldGetTheParserInstance()
+    public function testItShouldGetTheParserInstance()
     {
         $parser = $this->jwtAuth->parser();
         $this->assertInstanceOf(Parser::class, $parser);
     }
 
-    /** @test */
-    public function itShouldGetAClaimValue()
+    public function testItShouldGetAClaimValue()
     {
-        $payload = Mockery::mock(Payload::class);
+        $payload = \Mockery::mock(Payload::class);
         $payload->shouldReceive('get')->once()->with('sub')->andReturn(1);
 
         $this->manager->shouldReceive('decode')->once()->andReturn($payload);

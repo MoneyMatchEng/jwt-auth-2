@@ -95,7 +95,14 @@ class Blacklist
         // get the latter of the two expiration dates and find
         // the number of minutes until the expiration date,
         // plus 1 minute to avoid overlap
-        return $exp->max($iat->addMinutes($this->refreshTTL))->addMinute()->diffInRealMinutes();
+        $intermediateResult = $exp->max($iat->addMinutes($this->refreshTTL))->addMinute();
+
+        // Handle Carbon 2 vs 3 deprecation of "Real" diff functions, see https://github.com/PHP-Open-Source-Saver/jwt-auth/issues/260
+        if (method_exists($intermediateResult, 'diffInRealMinutes')) {
+            return round($intermediateResult->diffInRealMinutes(null, true));
+        } else {
+            return (int) round($intermediateResult->diffInMinutes(null, true));
+        }
     }
 
     /**
@@ -187,8 +194,6 @@ class Blacklist
 
     /**
      * Get the unique key held within the blacklist.
-     *
-     * @return mixed
      */
     public function getKey(Payload $payload)
     {

@@ -17,6 +17,7 @@ use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenBlacklistedException;
 use PHPOpenSourceSaver\JWTAuth\Support\CustomClaims;
 use PHPOpenSourceSaver\JWTAuth\Support\RefreshFlow;
+use PHPOpenSourceSaver\JWTAuth\Support\Utils;
 
 class Manager
 {
@@ -94,7 +95,7 @@ class Manager
      *
      * @return Payload
      *
-     * @throws \PHPOpenSourceSaver\JWTAuth\Exceptions\TokenBlacklistedException
+     * @throws TokenBlacklistedException
      */
     public function decode(Token $token, $checkBlacklist = true)
     {
@@ -106,10 +107,10 @@ class Manager
             ->make();
 
         if (
-            $checkBlacklist &&
-            $this->blacklistEnabled &&
-            $this->getBlackListExceptionEnabled() &&
-            $this->blacklist->has($payload)
+            $checkBlacklist
+            && $this->blacklistEnabled
+            && $this->getBlackListExceptionEnabled()
+            && $this->blacklist->has($payload)
         ) {
             throw new TokenBlacklistedException('The token has been blacklisted');
         }

@@ -12,7 +12,6 @@
 
 namespace PHPOpenSourceSaver\JWTAuth\Test;
 
-use Mockery;
 use Mockery\LegacyMockInterface;
 use PHPOpenSourceSaver\JWTAuth\Blacklist;
 use PHPOpenSourceSaver\JWTAuth\Claims\Collection;
@@ -25,6 +24,7 @@ use PHPOpenSourceSaver\JWTAuth\Claims\Subject;
 use PHPOpenSourceSaver\JWTAuth\Contracts\Providers\Storage;
 use PHPOpenSourceSaver\JWTAuth\Payload;
 use PHPOpenSourceSaver\JWTAuth\Validators\PayloadValidator;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class BlacklistTest extends AbstractTestCase
 {
@@ -38,13 +38,12 @@ class BlacklistTest extends AbstractTestCase
     {
         parent::setUp();
 
-        $this->storage = Mockery::mock(Storage::class);
+        $this->storage = \Mockery::mock(Storage::class);
         $this->blacklist = new Blacklist($this->storage);
-        $this->validator = Mockery::mock(PayloadValidator::class);
+        $this->validator = \Mockery::mock(PayloadValidator::class);
     }
 
-    /** @test */
-    public function itShouldAddAValidTokenToTheBlacklist()
+    public function testItShouldAddAValidTokenToTheBlacklist()
     {
         $claims = [
             new Subject(1),
@@ -75,8 +74,7 @@ class BlacklistTest extends AbstractTestCase
         $this->blacklist->setRefreshTTL($refreshTTL)->add($payload);
     }
 
-    /** @test */
-    public function itShouldAddATokenWithNoExpToTheBlacklistForever()
+    public function testItShouldAddATokenWithNoExpToTheBlacklistForever()
     {
         $claims = [
             new Subject(1),
@@ -95,8 +93,7 @@ class BlacklistTest extends AbstractTestCase
         $this->blacklist->add($payload);
     }
 
-    /** @test */
-    public function itShouldReturnTrueWhenAddingAnExpiredTokenToTheBlacklist()
+    public function testItShouldReturnTrueWhenAddingAnExpiredTokenToTheBlacklist()
     {
         $claims = [
             new Subject(1),
@@ -126,8 +123,7 @@ class BlacklistTest extends AbstractTestCase
         $this->assertTrue($this->blacklist->setRefreshTTL($refreshTTL)->add($payload));
     }
 
-    /** @test */
-    public function itShouldReturnTrueEarlyWhenAddingAnItemAndItAlreadyExists()
+    public function testItShouldReturnTrueEarlyWhenAddingAnItemAndItAlreadyExists()
     {
         $claims = [
             new Subject(1),
@@ -157,8 +153,7 @@ class BlacklistTest extends AbstractTestCase
         $this->assertTrue($this->blacklist->setRefreshTTL($refreshTTL)->add($payload));
     }
 
-    /** @test */
-    public function itShouldCheckWhetherATokenHasBeenBlacklisted()
+    public function testItShouldCheckWhetherATokenHasBeenBlacklisted()
     {
         $claims = [
             new Subject(1),
@@ -180,7 +175,7 @@ class BlacklistTest extends AbstractTestCase
         $this->assertTrue($this->blacklist->has($payload));
     }
 
-    public function blacklist_provider()
+    public static function blacklist_provider()
     {
         return [
             [null],
@@ -191,13 +186,8 @@ class BlacklistTest extends AbstractTestCase
         ];
     }
 
-    /**
-     * @test
-     * @dataProvider blacklist_provider
-     *
-     * @param mixed $result
-     */
-    public function itShouldCheckWhetherATokenHasNotBeenBlacklisted($result)
+    #[DataProvider('blacklist_provider')]
+    public function testItShouldCheckWhetherATokenHasNotBeenBlacklisted($result)
     {
         $claims = [
             new Subject(1),
@@ -218,8 +208,7 @@ class BlacklistTest extends AbstractTestCase
         $this->assertFalse($this->blacklist->has($payload));
     }
 
-    /** @test */
-    public function itShouldCheckWhetherATokenHasBeenBlacklistedForever()
+    public function testItShouldCheckWhetherATokenHasBeenBlacklistedForever()
     {
         $claims = [
             new Subject(1),
@@ -240,8 +229,7 @@ class BlacklistTest extends AbstractTestCase
         $this->assertTrue($this->blacklist->has($payload));
     }
 
-    /** @test */
-    public function itShouldCheckWhetherATokenHasBeenBlacklistedWhenTheTokenIsNotBlacklisted()
+    public function testItShouldCheckWhetherATokenHasBeenBlacklistedWhenTheTokenIsNotBlacklisted()
     {
         $claims = [
             new Subject(1),
@@ -262,8 +250,7 @@ class BlacklistTest extends AbstractTestCase
         $this->assertFalse($this->blacklist->has($payload));
     }
 
-    /** @test */
-    public function itShouldRemoveATokenFromTheBlacklist()
+    public function testItShouldRemoveATokenFromTheBlacklist()
     {
         $claims = [
             new Subject(1),
@@ -283,8 +270,7 @@ class BlacklistTest extends AbstractTestCase
         $this->assertTrue($this->blacklist->remove($payload));
     }
 
-    /** @test */
-    public function itShouldSetACustomUniqueKeyForTheBlacklist()
+    public function testItShouldSetACustomUniqueKeyForTheBlacklist()
     {
         $claims = [
             new Subject(1),
@@ -306,22 +292,19 @@ class BlacklistTest extends AbstractTestCase
         $this->assertSame(1, $this->blacklist->getKey($payload));
     }
 
-    /** @test */
-    public function itShouldEmptyTheBlacklist()
+    public function testItShouldEmptyTheBlacklist()
     {
         $this->storage->shouldReceive('flush');
         $this->assertTrue($this->blacklist->clear());
     }
 
-    /** @test */
-    public function itShouldSetAndGetTheBlacklistGracePeriod()
+    public function testItShouldSetAndGetTheBlacklistGracePeriod()
     {
         $this->assertInstanceOf(Blacklist::class, $this->blacklist->setGracePeriod(15));
         $this->assertSame(15, $this->blacklist->getGracePeriod());
     }
 
-    /** @test */
-    public function itShouldSetAndGetTheBlacklistRefreshTtl()
+    public function testItShouldSetAndGetTheBlacklistRefreshTtl()
     {
         $this->assertInstanceOf(Blacklist::class, $this->blacklist->setRefreshTTL(15));
         $this->assertSame(15, $this->blacklist->getRefreshTTL());

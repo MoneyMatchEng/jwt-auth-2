@@ -8,8 +8,55 @@ You can find and compare releases at the GitHub release page.
 
 ## [Unreleased]
 
+### Added
+- Fixes #259 - Can't logout with an expired token
+
+### Removed
+
+## [2.6.0] 2024-07-11
+
+### Added
+- New `getUserId` method
+
+## [2.5.0] 2024-07-03
+
+### Added
+- Refresh iat claim when refreshing a token
+
+## [2.4.0] 2024-05-27
+
+### Added
+- Support for lcobucci/jwt^5.0 (and dropped support for ^4.0)
+- SetSecret regenerates config with new secret in the Lcobucci provider
+
+## [2.3.0] 2024-05-09
+
+### Added
+- Support for Carbon 3 (and drop Carbon 1, but it was unused anyway)
+
+### Removed
+- Dropped support for Laravel < 10 and PHP < 8.1
+
+### Fixed
+- Use `id` claim for identify user if `sub` doesn't exists.
+
+## [2.2.0] 2024-03-12
+
+### Added
+- Different TTL configurations for each guard
+- lcobucci/jwt: add array support for `aud` claim
+- Laravel 11 support
+
+## [2.1.0] 2023-02-17
+
+### Added
+- Laravel 10 support
+
 ## [2.0.0] 2022-09-08
 - No changes to 2.0.0-RC1
+
+### Added
+- Arabic translation for docs by hawkiq
 
 ## [2.0.0-RC1] 2022-08-25
 

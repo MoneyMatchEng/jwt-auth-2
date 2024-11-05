@@ -12,9 +12,6 @@
 
 namespace PHPOpenSourceSaver\JWTAuth\Test\Providers\JWT;
 
-use Exception;
-use InvalidArgumentException;
-use Mockery;
 use Mockery\MockInterface;
 use Namshi\JOSE\JWS;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
@@ -38,16 +35,15 @@ class NamshiTest extends AbstractTestCase
     {
         parent::setUp();
 
-        $this->jws = Mockery::mock(JWS::class);
+        $this->jws = \Mockery::mock(JWS::class);
     }
 
-    /** @test */
-    public function itShouldReturnTheTokenWhenPassingAValidPayloadToEncode()
+    public function testItShouldReturnTheTokenWhenPassingAValidPayloadToEncode()
     {
         $payload = ['sub' => 1, 'exp' => $this->testNowTimestamp + 3600, 'iat' => $this->testNowTimestamp, 'iss' => '/foo'];
 
-        $this->jws->shouldReceive('setPayload')->once()->with($payload)->andReturn(Mockery::self());
-        $this->jws->shouldReceive('sign')->once()->with('secret', null)->andReturn(Mockery::self());
+        $this->jws->shouldReceive('setPayload')->once()->with($payload)->andReturn(\Mockery::self());
+        $this->jws->shouldReceive('sign')->once()->with('secret', null)->andReturn(\Mockery::self());
         $this->jws->shouldReceive('getTokenString')->once()->andReturn('foo.bar.baz');
 
         $token = $this->getProvider('secret', 'HS256')->encode($payload);
@@ -60,60 +56,55 @@ class NamshiTest extends AbstractTestCase
         return new Namshi($this->jws, $secret, $algo, $keys);
     }
 
-    /** @test */
-    public function itShouldThrowAnInvalidExceptionWhenThePayloadCouldNotBeEncoded()
+    public function testItShouldThrowAnInvalidExceptionWhenThePayloadCouldNotBeEncoded()
     {
         $this->expectException(JWTException::class);
         $this->expectExceptionMessage('Could not create token:');
 
         $payload = ['sub' => 1, 'exp' => $this->testNowTimestamp, 'iat' => $this->testNowTimestamp, 'iss' => '/foo'];
 
-        $this->jws->shouldReceive('setPayload')->once()->with($payload)->andReturn(Mockery::self());
-        $this->jws->shouldReceive('sign')->andThrow(new Exception());
+        $this->jws->shouldReceive('setPayload')->once()->with($payload)->andReturn(\Mockery::self());
+        $this->jws->shouldReceive('sign')->andThrow(new \Exception());
 
         $this->getProvider('secret', 'HS256')->encode($payload);
     }
 
-    /** @test */
-    public function itShouldReturnThePayloadWhenPassingAValidTokenToDecode()
+    public function testItShouldReturnThePayloadWhenPassingAValidTokenToDecode()
     {
         $payload = ['sub' => 1, 'exp' => $this->testNowTimestamp + 3600, 'iat' => $this->testNowTimestamp, 'iss' => '/foo'];
 
-        $this->jws->shouldReceive('load')->once()->with('foo.bar.baz', false)->andReturn(Mockery::self());
+        $this->jws->shouldReceive('load')->once()->with('foo.bar.baz', false)->andReturn(\Mockery::self());
         $this->jws->shouldReceive('verify')->once()->with('secret', 'HS256')->andReturn(true);
         $this->jws->shouldReceive('getPayload')->andReturn($payload);
 
         $this->assertSame($payload, $this->getProvider('secret', 'HS256')->decode('foo.bar.baz'));
     }
 
-    /** @test */
-    public function itShouldThrowATokenInvalidExceptionWhenTheTokenCouldNotBeDecodedDueToABadSignature()
+    public function testItShouldThrowATokenInvalidExceptionWhenTheTokenCouldNotBeDecodedDueToABadSignature()
     {
         $this->expectException(TokenInvalidException::class);
         $this->expectExceptionMessage('Token Signature could not be verified.');
 
-        $this->jws->shouldReceive('load')->once()->with('foo.bar.baz', false)->andReturn(Mockery::self());
+        $this->jws->shouldReceive('load')->once()->with('foo.bar.baz', false)->andReturn(\Mockery::self());
         $this->jws->shouldReceive('verify')->once()->with('secret', 'HS256')->andReturn(false);
         $this->jws->shouldReceive('getPayload')->never();
 
         $this->getProvider('secret', 'HS256')->decode('foo.bar.baz');
     }
 
-    /** @test */
-    public function itShouldThrowATokenInvalidExceptionWhenTheTokenCouldNotBeDecoded()
+    public function testItShouldThrowATokenInvalidExceptionWhenTheTokenCouldNotBeDecoded()
     {
         $this->expectException(TokenInvalidException::class);
         $this->expectExceptionMessage('Could not decode token:');
 
-        $this->jws->shouldReceive('load')->once()->with('foo.bar.baz', false)->andThrow(new InvalidArgumentException());
+        $this->jws->shouldReceive('load')->once()->with('foo.bar.baz', false)->andThrow(new \InvalidArgumentException());
         $this->jws->shouldReceive('verify')->never();
         $this->jws->shouldReceive('getPayload')->never();
 
         $this->getProvider('secret', 'HS256')->decode('foo.bar.baz');
     }
 
-    /** @test */
-    public function itShouldGenerateATokenWhenUsingAnRsaAlgorithm()
+    public function testItShouldGenerateATokenWhenUsingAnRsaAlgorithm()
     {
         $provider = $this->getProvider(
             'does_not_matter',
@@ -123,8 +114,8 @@ class NamshiTest extends AbstractTestCase
 
         $payload = ['sub' => 1, 'exp' => $this->testNowTimestamp + 3600, 'iat' => $this->testNowTimestamp, 'iss' => '/foo'];
 
-        $this->jws->shouldReceive('setPayload')->once()->with($payload)->andReturn(Mockery::self());
-        $this->jws->shouldReceive('sign')->once()->with($this->getDummyPrivateKey(), null)->andReturn(Mockery::self());
+        $this->jws->shouldReceive('setPayload')->once()->with($payload)->andReturn(\Mockery::self());
+        $this->jws->shouldReceive('sign')->once()->with($this->getDummyPrivateKey(), null)->andReturn(\Mockery::self());
         $this->jws->shouldReceive('getTokenString')->once()->andReturn('foo.bar.baz');
 
         $token = $provider->encode($payload);
@@ -142,8 +133,7 @@ class NamshiTest extends AbstractTestCase
         return file_get_contents(__DIR__.'/../Keys/id_rsa.pub');
     }
 
-    /** @test */
-    public function itShouldGenerateATokenWhenUsingAnEcdsaAlgorithm()
+    public function testItShouldGenerateATokenWhenUsingAnEcdsaAlgorithm()
     {
         $provider = $this->getProvider(
             'does_not_matter',
@@ -153,8 +143,8 @@ class NamshiTest extends AbstractTestCase
 
         $payload = ['sub' => 1, 'exp' => $this->testNowTimestamp + 3600, 'iat' => $this->testNowTimestamp, 'iss' => '/foo'];
 
-        $this->jws->shouldReceive('setPayload')->once()->with($payload)->andReturn(Mockery::self());
-        $this->jws->shouldReceive('sign')->once()->with($this->getDummyPrivateKey(), null)->andReturn(Mockery::self());
+        $this->jws->shouldReceive('setPayload')->once()->with($payload)->andReturn(\Mockery::self());
+        $this->jws->shouldReceive('sign')->once()->with($this->getDummyPrivateKey(), null)->andReturn(\Mockery::self());
         $this->jws->shouldReceive('getTokenString')->once()->andReturn('foo.bar.baz');
 
         $token = $provider->encode($payload);
@@ -162,8 +152,7 @@ class NamshiTest extends AbstractTestCase
         $this->assertSame('foo.bar.baz', $token);
     }
 
-    /** @test */
-    public function itShouldDecodeATokenWhenUsingAnRsaAlgorithm()
+    public function testItShouldDecodeATokenWhenUsingAnRsaAlgorithm()
     {
         $provider = $this->getProvider(
             'does_not_matter',
@@ -173,8 +162,8 @@ class NamshiTest extends AbstractTestCase
 
         $payload = ['sub' => 1, 'exp' => $this->testNowTimestamp + 3600, 'iat' => $this->testNowTimestamp, 'iss' => '/foo'];
 
-        $this->jws->shouldReceive('setPayload')->once()->with($payload)->andReturn(Mockery::self());
-        $this->jws->shouldReceive('sign')->once()->with($this->getDummyPrivateKey(), null)->andReturn(Mockery::self());
+        $this->jws->shouldReceive('setPayload')->once()->with($payload)->andReturn(\Mockery::self());
+        $this->jws->shouldReceive('sign')->once()->with($this->getDummyPrivateKey(), null)->andReturn(\Mockery::self());
         $this->jws->shouldReceive('getTokenString')->once()->andReturn('foo.bar.baz');
 
         $token = $provider->encode($payload);
@@ -182,20 +171,18 @@ class NamshiTest extends AbstractTestCase
         $this->assertSame('foo.bar.baz', $token);
     }
 
-    /** @test */
-    public function itShouldThrowAExceptionWhenTheAlgorithmPassedIsInvalid()
+    public function testItShouldThrowAExceptionWhenTheAlgorithmPassedIsInvalid()
     {
         $this->expectException(JWTException::class);
         $this->expectExceptionMessage('The given algorithm could not be found');
 
-        $this->jws->shouldReceive('load')->once()->with('foo.bar.baz', false)->andReturn(Mockery::self());
+        $this->jws->shouldReceive('load')->once()->with('foo.bar.baz', false)->andReturn(\Mockery::self());
         $this->jws->shouldReceive('verify')->with('secret', 'AlgorithmWrong')->andReturn(true);
 
         $this->getProvider('secret', 'AlgorithmWrong')->decode('foo.bar.baz');
     }
 
-    /** @test */
-    public function itShouldReturnThePublicKey()
+    public function testItShouldReturnThePublicKey()
     {
         $provider = $this->getProvider(
             'does_not_matter',
@@ -206,8 +193,7 @@ class NamshiTest extends AbstractTestCase
         $this->assertSame($keys['public'], $provider->getPublicKey());
     }
 
-    /** @test */
-    public function itShouldReturnTheKeys()
+    public function testItShouldReturnTheKeys()
     {
         $provider = $this->getProvider(
             'does_not_matter',

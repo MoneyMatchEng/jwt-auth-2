@@ -13,13 +13,12 @@
 namespace PHPOpenSourceSaver\JWTAuth\Test\Middleware;
 
 use Illuminate\Http\Response;
-use Mockery;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenInvalidException;
 use PHPOpenSourceSaver\JWTAuth\Http\Middleware\RefreshToken;
 use PHPOpenSourceSaver\JWTAuth\Http\Parser\Parser;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
-class RefreshTokenTest extends AbstractMiddlewareTest
+class RefreshTokenTest extends AbstractMiddleware
 {
     /**
      * @var RefreshToken
@@ -33,10 +32,9 @@ class RefreshTokenTest extends AbstractMiddlewareTest
         $this->middleware = new RefreshToken($this->auth);
     }
 
-    /** @test */
-    public function itShouldRefreshAToken()
+    public function testItShouldRefreshAToken()
     {
-        $parser = Mockery::mock(Parser::class);
+        $parser = \Mockery::mock(Parser::class);
         $parser->shouldReceive('hasToken')->once()->andReturn(true);
 
         $this->auth->shouldReceive('parser')->andReturn($parser);
@@ -51,12 +49,11 @@ class RefreshTokenTest extends AbstractMiddlewareTest
         $this->assertSame($response->headers->get('authorization'), 'Bearer foo.bar.baz');
     }
 
-    /** @test */
-    public function itShouldThrowAnUnauthorizedExceptionIfTokenNotProvided()
+    public function testItShouldThrowAnUnauthorizedExceptionIfTokenNotProvided()
     {
         $this->expectException(UnauthorizedHttpException::class);
 
-        $parser = Mockery::mock(Parser::class);
+        $parser = \Mockery::mock(Parser::class);
         $parser->shouldReceive('hasToken')->once()->andReturn(false);
 
         $this->auth->shouldReceive('parser')->andReturn($parser);
@@ -66,12 +63,11 @@ class RefreshTokenTest extends AbstractMiddlewareTest
         });
     }
 
-    /** @test */
-    public function itShouldThrowAnUnauthorizedExceptionIfTokenInvalid()
+    public function testItShouldThrowAnUnauthorizedExceptionIfTokenInvalid()
     {
         $this->expectException(UnauthorizedHttpException::class);
 
-        $parser = Mockery::mock(Parser::class);
+        $parser = \Mockery::mock(Parser::class);
         $parser->shouldReceive('hasToken')->once()->andReturn(true);
 
         $this->auth->shouldReceive('parser')->andReturn($parser);

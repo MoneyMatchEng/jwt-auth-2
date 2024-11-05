@@ -13,12 +13,11 @@
 namespace PHPOpenSourceSaver\JWTAuth\Test\Middleware;
 
 use Illuminate\Http\Request;
-use Mockery;
 use Mockery\MockInterface;
 use PHPOpenSourceSaver\JWTAuth\JWTAuth;
 use PHPOpenSourceSaver\JWTAuth\Test\AbstractTestCase;
 
-abstract class AbstractMiddlewareTest extends AbstractTestCase
+abstract class AbstractMiddleware extends AbstractTestCase
 {
     /**
      * @var MockInterface|JWTAuth
@@ -34,7 +33,7 @@ abstract class AbstractMiddlewareTest extends AbstractTestCase
     {
         parent::setUp();
 
-        $this->auth = Mockery::mock(JWTAuth::class);
-        $this->request = Mockery::mock(Request::class);
+        $this->auth = \Mockery::mock(JWTAuth::class);
+        $this->request = \Mockery::mock(Request::class);
     }
 }

@@ -12,7 +12,7 @@
 
 namespace PHPOpenSourceSaver\JWTAuth\Test;
 
-use Mockery;
+use Illuminate\Support\Carbon;
 use Mockery\LegacyMockInterface;
 use PHPOpenSourceSaver\JWTAuth\Blacklist;
 use PHPOpenSourceSaver\JWTAuth\Claims\Collection;
@@ -48,17 +48,17 @@ class ManagerTest extends AbstractTestCase
     {
         parent::setUp();
 
-        $this->jwt = Mockery::mock(JWT::class);
-        $this->blacklist = Mockery::mock(Blacklist::class);
-        $this->factory = Mockery::mock(Factory::class);
+        $this->jwt = \Mockery::mock(JWT::class);
+        $this->blacklist = \Mockery::mock(Blacklist::class);
+        $this->factory = \Mockery::mock(Factory::class);
         $this->manager = new Manager($this->jwt, $this->blacklist, $this->factory);
-        $this->validator = Mockery::mock(PayloadValidator::class);
+        $this->validator = \Mockery::mock(PayloadValidator::class);
     }
 
-    /** @test
+    /**
      * @throws InvalidClaimException
      */
-    public function itShouldEncodeAPayload()
+    public function testItShouldEncodeAPayload()
     {
         $claims = [
             new Subject(1),
@@ -81,10 +81,10 @@ class ManagerTest extends AbstractTestCase
         $this->assertEquals($token, 'foo.bar.baz');
     }
 
-    /** @test
+    /**
      * @throws InvalidClaimException|TokenBlacklistedException
      */
-    public function itShouldDecodeAToken()
+    public function testItShouldDecodeAToken()
     {
         $claims = [
             new Subject(1),
@@ -115,10 +115,10 @@ class ManagerTest extends AbstractTestCase
         $this->assertSame($payload->count(), 6);
     }
 
-    /** @test
+    /**
      * @throws InvalidClaimException
      */
-    public function itShouldThrowExceptionWhenTokenIsBlacklisted()
+    public function testItShouldThrowExceptionWhenTokenIsBlacklisted()
     {
         $this->expectException(TokenBlacklistedException::class);
         $this->expectExceptionMessage('The token has been blacklisted');
@@ -148,10 +148,10 @@ class ManagerTest extends AbstractTestCase
         $this->manager->decode($token);
     }
 
-    /** @test
+    /**
      * @throws InvalidClaimException
      */
-    public function itShouldRefreshAToken()
+    public function testItShouldRefreshAToken()
     {
         $claims = [
             new Subject(1),
@@ -184,10 +184,46 @@ class ManagerTest extends AbstractTestCase
         $this->assertEquals('baz.bar.foo', $token);
     }
 
-    /** @test
+    public function testBuildRefreshClaimsMethodWillRefreshTheIAT()
+    {
+        $claims = [
+            new Subject(1),
+            new Issuer('http://example.com'),
+            new Expiration($this->testNowTimestamp - 3600),
+            new NotBefore($this->testNowTimestamp),
+            new IssuedAt($this->testNowTimestamp),
+            new JwtId('foo'),
+        ];
+        $collection = Collection::make($claims);
+
+        $this->validator->shouldReceive('setRefreshFlow->check')->andReturn($collection);
+        $payload = new Payload($collection, $this->validator);
+
+        $managerClass = new \ReflectionClass(Manager::class);
+        $buildRefreshClaimsMethod = $managerClass->getMethod('buildRefreshClaims');
+        $buildRefreshClaimsMethod->setAccessible(true);
+        $managerInstance = new Manager($this->jwt, $this->blacklist, $this->factory);
+
+        $firstResult = $buildRefreshClaimsMethod->invokeArgs($managerInstance, [$payload]);
+        Carbon::setTestNow(Carbon::now()->addMinutes(2));
+        $secondResult = $buildRefreshClaimsMethod->invokeArgs($managerInstance, [$payload]);
+
+        $this->assertIsInt($firstResult['iat']);
+        $this->assertIsInt($secondResult['iat']);
+
+        $carbonTimestamp = Carbon::createFromTimestamp($firstResult['iat']);
+        $this->assertInstanceOf(Carbon::class, $carbonTimestamp);
+
+        $carbonTimestamp = Carbon::createFromTimestamp($secondResult['iat']);
+        $this->assertInstanceOf(Carbon::class, $carbonTimestamp);
+
+        $this->assertNotEquals($firstResult['iat'], $secondResult['iat']);
+    }
+
+    /**
      * @throws InvalidClaimException
      */
-    public function itShouldInvalidateAToken()
+    public function testItShouldInvalidateAToken()
     {
         $claims = [
             new Subject(1),
@@ -216,10 +252,10 @@ class ManagerTest extends AbstractTestCase
         $this->manager->invalidate($token);
     }
 
-    /** @test
+    /**
      * @throws InvalidClaimException
      */
-    public function itShouldForceInvalidateATokenForever()
+    public function testItShouldForceInvalidateATokenForever()
     {
         $claims = [
             new Subject(1),
@@ -248,8 +284,7 @@ class ManagerTest extends AbstractTestCase
         $this->manager->invalidate($token, true);
     }
 
-    /** @test */
-    public function itShouldThrowAnExceptionWhenEnableBlacklistIsSetToFalse()
+    public function testItShouldThrowAnExceptionWhenEnableBlacklistIsSetToFalse()
     {
         $this->expectException(JWTException::class);
         $this->expectExceptionMessage('You must have the blacklist enabled to invalidate a token.');
@@ -259,25 +294,21 @@ class ManagerTest extends AbstractTestCase
         $this->manager->setBlacklistEnabled(false)->invalidate($token);
     }
 
-    /** @test */
-    public function itShouldGetThePayloadFactory()
+    public function testItShouldGetThePayloadFactory()
     {
         $this->assertInstanceOf(Factory::class, $this->manager->getPayloadFactory());
     }
 
-    /** @test */
-    public function itShouldGetTheJwtProvider()
+    public function testItShouldGetTheJwtProvider()
     {
         $this->assertInstanceOf(JWT::class, $this->manager->getJWTProvider());
     }
 
-    /** @test */
-    public function itShouldGetTheBlacklist()
+    public function testItShouldGetTheBlacklist()
     {
         $this->assertInstanceOf(Blacklist::class, $this->manager->getBlacklist());
     }
 
-    /** @test */
     public function testIfShowBlacklistedExceptionConfigurationIsEnabled()
     {
         $this->manager->setBlackListExceptionEnabled(true);
@@ -285,7 +316,6 @@ class ManagerTest extends AbstractTestCase
         $this->assertIsBool($this->manager->getBlackListExceptionEnabled());
     }
 
-    /** @test */
     public function testIfBlackListedExceptionIsSetToTrue()
     {
         $this->manager->setBlackListExceptionEnabled(true);
@@ -293,7 +323,6 @@ class ManagerTest extends AbstractTestCase
         $this->assertTrue($this->manager->getBlackListExceptionEnabled());
     }
 
-    /** @test */
     public function testIfBlackListedExceptionIsSetToFalse()
     {
         $this->manager->setBlackListExceptionEnabled(false);

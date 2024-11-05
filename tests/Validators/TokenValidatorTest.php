@@ -15,6 +15,7 @@ namespace PHPOpenSourceSaver\JWTAuth\Test\Validators;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenInvalidException;
 use PHPOpenSourceSaver\JWTAuth\Test\AbstractTestCase;
 use PHPOpenSourceSaver\JWTAuth\Validators\TokenValidator;
+use PHPUnit\Framework\Attributes\DataProviderExternal;
 
 class TokenValidatorTest extends AbstractTestCase
 {
@@ -30,28 +31,19 @@ class TokenValidatorTest extends AbstractTestCase
         $this->validator = new TokenValidator();
     }
 
-    /** @test */
-    public function itShouldReturnTrueWhenProvidingAWellFormedToken()
+    public function testItShouldReturnTrueWhenProvidingAWellFormedToken()
     {
         $this->assertTrue($this->validator->isValid('one.two.three'));
     }
 
-    /**
-     * @test
-     * @dataProvider \PHPOpenSourceSaver\JWTAuth\Test\Validators\TokenValidatorTest::dataProviderMalformedTokens
-     *
-     * @param string $token
-     */
-    public function itShouldReturnFalseWhenProvidingAMalformedToken($token)
+    #[DataProviderExternal(TokenValidatorTest::class, 'dataProviderMalformedTokens')]
+    public function testItShouldReturnFalseWhenProvidingAMalformedToken(string $token)
     {
         $this->assertFalse($this->validator->isValid($token));
     }
 
-    /**
-     * @test
-     * @dataProvider \PHPOpenSourceSaver\JWTAuth\Test\Validators\TokenValidatorTest::dataProviderMalformedTokens
-     */
-    public function itShouldThrowAnExceptionWhenProvidingAMalformedToken($token)
+    #[DataProviderExternal(TokenValidatorTest::class, 'dataProviderMalformedTokens')]
+    public function testItShouldThrowAnExceptionWhenProvidingAMalformedToken($token)
     {
         $this->expectException(TokenInvalidException::class);
         $this->expectExceptionMessage('Malformed token');
@@ -59,20 +51,14 @@ class TokenValidatorTest extends AbstractTestCase
         $this->validator->check($token);
     }
 
-    /**
-     * @test
-     * @dataProvider \PHPOpenSourceSaver\JWTAuth\Test\Validators\TokenValidatorTest::dataProviderTokensWithWrongSegmentsNumber
-     */
-    public function itShouldReturnFalseWhenProvidingATokenWithWrongSegmentsNumber($token)
+    #[DataProviderExternal(TokenValidatorTest::class, 'dataProviderTokensWithWrongSegmentsNumber')]
+    public function testItShouldReturnFalseWhenProvidingATokenWithWrongSegmentsNumber($token)
     {
         $this->assertFalse($this->validator->isValid($token));
     }
 
-    /**
-     * @test
-     * @dataProvider \PHPOpenSourceSaver\JWTAuth\Test\Validators\TokenValidatorTest::dataProviderTokensWithWrongSegmentsNumber
-     */
-    public function itShouldThrowAnExceptionWhenProvidingAMalformedTokenWithWrongSegmentsNumber($token)
+    #[DataProviderExternal(TokenValidatorTest::class, 'dataProviderTokensWithWrongSegmentsNumber')]
+    public function testItShouldThrowAnExceptionWhenProvidingAMalformedTokenWithWrongSegmentsNumber($token)
     {
         $this->expectException(TokenInvalidException::class);
         $this->expectExceptionMessage('Wrong number of segments');
@@ -80,7 +66,7 @@ class TokenValidatorTest extends AbstractTestCase
         $this->validator->check($token);
     }
 
-    public function dataProviderMalformedTokens()
+    public static function dataProviderMalformedTokens()
     {
         return [
             ['one.two.'],
@@ -93,7 +79,7 @@ class TokenValidatorTest extends AbstractTestCase
         ];
     }
 
-    public function dataProviderTokensWithWrongSegmentsNumber()
+    public static function dataProviderTokensWithWrongSegmentsNumber()
     {
         return [
             ['one.two'],

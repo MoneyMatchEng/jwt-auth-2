@@ -13,7 +13,6 @@
 namespace PHPOpenSourceSaver\JWTAuth\Test\Providers\Storage;
 
 use Illuminate\Contracts\Cache\Repository;
-use Mockery;
 use Mockery\MockInterface;
 use PHPOpenSourceSaver\JWTAuth\Providers\Storage\Illuminate as Storage;
 use PHPOpenSourceSaver\JWTAuth\Test\AbstractTestCase;
@@ -35,44 +34,39 @@ class IlluminateTest extends AbstractTestCase
     {
         parent::setUp();
 
-        $this->cache = Mockery::mock(Repository::class);
+        $this->cache = \Mockery::mock(Repository::class);
         $this->storage = new Storage($this->cache);
     }
 
-    /** @test */
-    public function itShouldAddTheItemToStorage()
+    public function testItShouldAddTheItemToStorage()
     {
         $this->cache->shouldReceive('put')->with('foo', 'bar', 10)->once();
 
         $this->storage->add('foo', 'bar', 10);
     }
 
-    /** @test */
-    public function itShouldAddTheItemToStorageForever()
+    public function testItShouldAddTheItemToStorageForever()
     {
         $this->cache->shouldReceive('forever')->with('foo', 'bar')->once();
 
         $this->storage->forever('foo', 'bar');
     }
 
-    /** @test */
-    public function itShouldGetAnItemFromStorage()
+    public function testItShouldGetAnItemFromStorage()
     {
         $this->cache->shouldReceive('get')->with('foo')->once()->andReturn(['foo' => 'bar']);
 
         $this->assertSame(['foo' => 'bar'], $this->storage->get('foo'));
     }
 
-    /** @test */
-    public function itShouldRemoveTheItemFromStorage()
+    public function testItShouldRemoveTheItemFromStorage()
     {
         $this->cache->shouldReceive('forget')->with('foo')->once()->andReturn(true);
 
         $this->assertTrue($this->storage->destroy('foo'));
     }
 
-    /** @test */
-    public function itShouldRemoveAllItemsFromStorage()
+    public function testItShouldRemoveAllItemsFromStorage()
     {
         $this->cache->shouldReceive('flush')->withNoArgs()->once();
 
@@ -81,8 +75,7 @@ class IlluminateTest extends AbstractTestCase
 
     // Duplicate tests for tagged storage --------------------
 
-    /** @test */
-    public function itShouldAddTheItemToTaggedStorage()
+    public function testItShouldAddTheItemToTaggedStorage()
     {
         $this->emulateTags();
         $this->cache->shouldReceive('put')->with('foo', 'bar', 10)->once();
@@ -93,18 +86,15 @@ class IlluminateTest extends AbstractTestCase
     /**
      * Replace the storage with our one above that overrides the tag flag, and
      * define expectations for tags() method.
-     *
-     * @return void
      */
     private function emulateTags()
     {
         $this->storage = new TaggedStorage($this->cache);
 
-        $this->cache->shouldReceive('tags')->with('tymon.jwt')->once()->andReturn(Mockery::self());
+        $this->cache->shouldReceive('tags')->with('tymon.jwt')->once()->andReturn(\Mockery::self());
     }
 
-    /** @test */
-    public function itShouldAddTheItemToTaggedStorageForever()
+    public function testItShouldAddTheItemToTaggedStorageForever()
     {
         $this->emulateTags();
         $this->cache->shouldReceive('forever')->with('foo', 'bar')->once();
@@ -112,8 +102,7 @@ class IlluminateTest extends AbstractTestCase
         $this->storage->forever('foo', 'bar');
     }
 
-    /** @test */
-    public function itShouldGetAnItemFromTaggedStorage()
+    public function testItShouldGetAnItemFromTaggedStorage()
     {
         $this->emulateTags();
         $this->cache->shouldReceive('get')->with('foo')->once()->andReturn(['foo' => 'bar']);
@@ -121,8 +110,7 @@ class IlluminateTest extends AbstractTestCase
         $this->assertSame(['foo' => 'bar'], $this->storage->get('foo'));
     }
 
-    /** @test */
-    public function itShouldRemoveTheItemFromTaggedStorage()
+    public function testItShouldRemoveTheItemFromTaggedStorage()
     {
         $this->emulateTags();
         $this->cache->shouldReceive('forget')->with('foo')->once()->andReturn(true);
@@ -130,8 +118,7 @@ class IlluminateTest extends AbstractTestCase
         $this->assertTrue($this->storage->destroy('foo'));
     }
 
-    /** @test */
-    public function itShouldRemoveAllTaggedItemsFromStorage()
+    public function testItShouldRemoveAllTaggedItemsFromStorage()
     {
         $this->emulateTags();
         $this->cache->shouldReceive('flush')->withNoArgs()->once();
